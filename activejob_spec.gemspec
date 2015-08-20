@@ -5,7 +5,7 @@ require 'activejob_spec/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "activejob_spec"
-  spec.version       = ActivejobSpec::VERSION
+  spec.version       = ActiveJobSpec::VERSION
   spec.authors       = ["Peter Negrei"]
   spec.email         = ["negrei.petru@gmail.com"]
 
@@ -35,4 +35,5 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'actionpack'
   spec.add_development_dependency 'activesupport'
+  spec.add_development_dependency 'pry'
 end

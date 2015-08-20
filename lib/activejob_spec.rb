@@ -1,5 +1,5 @@
 require "activejob_spec/version"
+require "activejob_spec/matchers"
 
-module ActivejobSpec
-  # Your code goes here...
+module ActiveJobSpec
 end
