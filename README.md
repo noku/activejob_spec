@@ -10,19 +10,13 @@ Add this line to your application's Gemfile:
 gem 'activejob_spec'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install activejob_spec
-
 or
 
-    group :test do
-      gem 'activejob_spec'
-    end
+```ruby
+  group :development, :test do
+    gem 'activejob_spec'
+  end
+```
 
 ## Usage
 
@@ -35,14 +29,17 @@ Given this scenario
 And I write this spec using the `activejob_spec` matcher
 
 ```ruby
-describe "#process" do
+describe '#process' do
   before do
     ActiveJobSpec.reset!
   end
 
-  it "adds payment.process to the Payment queue" do
+  it 'adds payment.process to the Payment queue' do
     payment.process
-    expect(Payment).to have_queued(payment.id, :process)
+    expect(Payment).to have_queued(payment.id)
+
+    # also possible with :once and :times methods
+    # expect(Payment).to have_queued(payment.id).once
   end
 end
 ```
@@ -54,23 +51,101 @@ And I take note of the `before` block that is calling `reset!` for every spec.
 You can check the size of the queue in your specs too.
 
 ```ruby
-describe "#process" do
+describe '#process' do
   before do
     ActiveJobSpec.reset!
   end
 
-  it "adds an entry to the Payment queue" do
+  it 'adds an entry to the Payment queue' do
     payment.process
     expect(Payment).to have_queue_size_of(1)
   end
 end
 ```
 
+## Scheduled Jobs
+
+Given this scenario
+
+    Given a payment
+    When I schedule a process
+    Then the payment has process scheduled
+
+And I write this spec using the `activejob_spec` matcher
+
+```ruby
+describe '#process' do
+  before do
+    ActiveJobSpec.reset!
+  end
+
+  it 'adds payment.process to the Payment queue' do
+    payment.process
+
+    expect(Payment).to have_scheduled(payment.id)
+  end
+end
+```
+
+And I might use the `at` statement to specify the time:
+
+```ruby
+describe "#process" do
+  before do
+    ActiveJobSpec.reset!
+  end
+
+  it 'adds payment.process to the Payment queue' do
+    payment.process
+
+    # Is it scheduled to be executed at 2010-02-14 06:00:00 ?
+    expect(Payment).to have_scheduled(payment.id).at(Time.mktime(2010,2,14,6,0,0))
+  end
+end
+```
+
+And I might use the `in` statement to specify time interval (in seconds):
+
+```ruby
+describe '#process' do
+  before do
+    ActiveJobSpec.reset!
+  end
+
+  it 'adds payment.process to the Payment queue' do
+    payment.process
+
+    # Is it scheduled to be executed in 5 minutes?
+    expect(Payment).to have_scheduled(payment.id).in(5 * 60)
+  end
+end
+```
+
+You can also check the size of the schedule:
+
+```ruby
+describe "#process" do
+  before do
+    ActiveJobSpec.reset!
+  end
+
+  it "adds payment.calculate to the Payment queue" do
+    payment.process
+
+    expect(Payment).to have_schedule_size_of(1)
+  end
+end
+```
+
+(And I take note of the `before` block that is calling `reset!` for every spec)
+
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/activejob_spec. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+* Fork the project.
+* Make your feature addition or bug fix.
+* Add tests for it.
+* Send a pull request.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
+Copyright (c) 2015 Peter Negrei. See LICENSE for details.
