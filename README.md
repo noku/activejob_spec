@@ -1,8 +1,6 @@
-# ActivejobSpec
+# ActiveJobSpec
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/activejob_spec`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+A test double of ActiveJob for RSpec.
 
 ## Installation
 
@@ -20,20 +18,57 @@ Or install it yourself as:
 
     $ gem install activejob_spec
 
+or
+
+    group :test do
+      gem 'activejob_spec'
+    end
+
 ## Usage
 
-TODO: Write usage instructions here
+Given this scenario
 
-## Development
+    Given a payment
+    When I process
+    Then the payment has process queued
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+And I write this spec using the `activejob_spec` matcher
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```ruby
+describe "#process" do
+  before do
+    ActiveJobSpec.reset!
+  end
+
+  it "adds payment.process to the Payment queue" do
+    payment.process
+    expect(Payment).to have_queued(payment.id, :process)
+  end
+end
+```
+
+And I see that the `have_queued` assertion is asserting that the `Payment` queue has a job with arguments `payment.id` and `:process`
+
+And I take note of the `before` block that is calling `reset!` for every spec.
+
+You can check the size of the queue in your specs too.
+
+```ruby
+describe "#process" do
+  before do
+    ActiveJobSpec.reset!
+  end
+
+  it "adds an entry to the Payment queue" do
+    payment.process
+    expect(Payment).to have_queue_size_of(1)
+  end
+end
+```
 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/activejob_spec. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
-
 
 ## License
 
