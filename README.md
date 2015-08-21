@@ -7,15 +7,15 @@ A test double of ActiveJob for RSpec.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'activejob_spec'
-```
-
-or
-
-```ruby
   group :development, :test do
     gem 'activejob_spec'
   end
+```
+
+and then execute
+
+```
+  $ bundle
 ```
 
 ## Usage
