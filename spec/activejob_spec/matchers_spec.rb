@@ -92,4 +92,34 @@ describe 'ActiveJobSpec Matchers' do
       end
     end
   end
+
+  describe '#have_scheduled' do
+    context 'without scheduled any job in the queue' do
+      before do
+        enqueued_jobs << { job: AJob, args: ['id'] }
+      end
+
+      it 'does not have a scheduled job for Ajob' do
+        expect(AJob).not_to have_scheduled('id')
+      end
+    end
+
+    context 'with a scheduled job' do
+      before do
+        enqueued_jobs << { job: AJob, args: ['id'], at: 3.days.from_now }
+      end
+
+      it 'has a scheduled job for AJob' do
+        expect(AJob).to have_scheduled('id')
+      end
+
+      it 'has a scheduled job at right time for AJob' do
+        expect(AJob).to have_scheduled('id').at(3.days.from_now)
+      end
+
+      it 'has a scheduled job in specifend interval for AJob' do
+        expect(AJob).to have_scheduled('id').in(3.days)
+      end
+    end
+  end
 end

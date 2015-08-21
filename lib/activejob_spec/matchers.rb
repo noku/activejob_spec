@@ -19,8 +19,7 @@ module QueueHelper
 
   def find_matching_jobs(actual, expected_args)
     enqueued_jobs.select do |entry|
-      args = entry.fetch(:args)
-      match_job(entry, actual) && match_args(expected_args, args)
+      match_job(entry, actual) && match_args(expected_args, entry.fetch(:args))
     end
   end
 
@@ -38,6 +37,38 @@ module QueueHelper
     else
       matched_jobs.size > 0
     end
+  end
+end
+
+module ScheduleQueueHelper
+  include QueueHelper
+
+  def check_if_scheduled(actual, expected_args)
+    scheduled_jobs.any? do |entry|
+      class_matches = match_job(entry, actual)
+      args_match = match_args(expected_args, entry.fetch(:args))
+
+      class_matches && args_match && time_matches(entry)
+    end
+  end
+
+  def time_matches(entry)
+    return compare_time(entry) if @time
+    return compare_interval(entry) if @interval
+
+    true
+  end
+
+  def compare_time(entry)
+    entry[:at].to_i == @time.to_i
+  end
+
+  def compare_interval(entry)
+    entry[:at].to_i == (Time.now + @interval).to_i
+  end
+
+  def scheduled_jobs
+    enqueued_jobs.select { |job| job.key?(:at) }
   end
 end
 
@@ -90,5 +121,37 @@ RSpec::Matchers.define :have_queue_size_of do |size|
 
   description do
     "have a queue size of #{size}"
+  end
+end
+
+RSpec::Matchers.define :have_scheduled do |*expected_args|
+  include ScheduleQueueHelper
+
+  chain :at do |timestamp|
+    @interval = nil
+    @time = timestamp
+    @time_info = "at #{@time}"
+  end
+
+  chain :in do |interval|
+    @time = nil
+    @interval = interval
+    @time_info = "in #{@interval} seconds"
+  end
+
+  match do |actual|
+    check_if_scheduled(actual, expected_args)
+  end
+
+  failure_message do |actual|
+    ["expected that #{actual} would have [#{expected_args.join(', ')}] scheduled", @time_info].join(' ')
+  end
+
+  failure_message_when_negated do |actual|
+    ["expected that #{actual} would not have [#{expected_args.join(', ')}] scheduled", @time_info].join(' ')
+  end
+
+  description do
+    "have scheduled arguments"
   end
 end
