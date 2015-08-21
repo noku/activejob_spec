@@ -122,4 +122,45 @@ describe 'ActiveJobSpec Matchers' do
       end
     end
   end
+
+  describe '#have_schedule_size_of' do
+    context 'when nothing gets enqueued' do
+      it 'returns 0 for AJob scheduled size' do
+        expect(AJob).to have_schedule_size_of(0)
+      end
+
+      it 'returns 0 for BJob scheduled size' do
+        expect(BJob).to have_schedule_size_of(0)
+      end
+    end
+
+    context 'with a single job in the scheduled' do
+      before do
+        enqueued_jobs << { job: AJob, args: [], at: 3.days.from_now }
+      end
+
+      it 'returns 1 for Ajob scheduled size' do
+        expect(AJob).to have_schedule_size_of(1)
+      end
+
+      it 'returns 0 for Bjob scheduled size' do
+        expect(BJob).to have_schedule_size_of(0)
+      end
+    end
+
+    context 'with multiple jobs in the scheduled' do
+      before do
+        enqueued_jobs << { job: AJob, args: [], at: 3.days.from_now }
+        enqueued_jobs << { job: BJob, args: [], at: 3.days.from_now }
+      end
+
+      it 'returns 1 for Ajob scheduled size' do
+        expect(AJob).to have_schedule_size_of(1)
+      end
+
+      it 'returns 1 for Bjob scheduled size' do
+        expect(BJob).to have_schedule_size_of(1)
+      end
+    end
+  end
 end
