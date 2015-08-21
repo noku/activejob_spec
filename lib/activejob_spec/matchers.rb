@@ -13,9 +13,15 @@ module ArgsHelper
   end
 end
 
+module ActiveJobHelper
+  def enqueued_jobs
+    ::ActiveJob::Base.queue_adapter.enqueued_jobs
+  end
+end
+
 module QueueHelper
   include ArgsHelper
-  include ActiveJob::TestHelper
+  include ActiveJobHelper
 
   def find_matching_jobs(actual, expected_args)
     enqueued_jobs.select do |entry|
@@ -23,12 +29,8 @@ module QueueHelper
     end
   end
 
-  def queue_size_for(klass)
-    enqueued_jobs.select { |job| match_job(job, klass) }.size
-  end
-
-  def enqueued_jobs
-    ::ActiveJob::Base.queue_adapter.enqueued_jobs
+  def queue_size_for(actual)
+    enqueued_jobs.select { |job| match_job(job, actual) }.size
   end
 
   def check_size_for(matched_jobs, times)
@@ -43,7 +45,7 @@ end
 module ScheduleQueueHelper
   include QueueHelper
 
-  def check_if_scheduled(actual, expected_args)
+  def check_for_scheduled(actual, expected_args)
     scheduled_jobs.any? do |entry|
       class_matches = match_job(entry, actual)
       args_match = match_args(expected_args, entry.fetch(:args))
@@ -71,8 +73,8 @@ module ScheduleQueueHelper
     enqueued_jobs.select { |job| job.key?(:at) }
   end
 
-  def scheduled_size_for(klass)
-    scheduled_jobs.select { |job| match_job(job, klass) }.size
+  def scheduled_size_for(actual)
+    scheduled_jobs.select { |job| match_job(job, actual) }.size
   end
 end
 
@@ -144,7 +146,7 @@ RSpec::Matchers.define :have_scheduled do |*expected_args|
   end
 
   match do |actual|
-    check_if_scheduled(actual, expected_args)
+    check_for_scheduled(actual, expected_args)
   end
 
   failure_message do |actual|
