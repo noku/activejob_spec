@@ -70,6 +70,10 @@ module ScheduleQueueHelper
   def scheduled_jobs
     enqueued_jobs.select { |job| job.key?(:at) }
   end
+
+  def scheduled_size_for(klass)
+    scheduled_jobs.select { |job| match_job(job, klass) }.size
+  end
 end
 
 RSpec::Matchers.define :have_queued do |*expected_args|
@@ -153,5 +157,25 @@ RSpec::Matchers.define :have_scheduled do |*expected_args|
 
   description do
     "have scheduled arguments"
+  end
+end
+
+RSpec::Matchers.define :have_schedule_size_of do |size|
+  include ScheduleQueueHelper
+
+  match do |actual|
+    scheduled_size_for(actual) == size
+  end
+
+  failure_message do |actual|
+    "expected that #{actual} would have #{size} entries scheduled, but got #{queue_size_for(actual)} instead"
+  end
+
+  failure_message_when_negated do |actual|
+    "expected that #{actual} would not have #{size} entries scheduled, but got #{queue_size_for(actual)} instead"
+  end
+
+  description do
+    "have a scheduled queue size of #{size}"
   end
 end
